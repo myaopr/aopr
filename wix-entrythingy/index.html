@@ -1,0 +1,83 @@
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<link rel="shortcut icon" href="https://aopr-img.artsofpointrichmond.com/images/favicon.ico" type="image/ico">
+
+	<!--- Google Fonts: https://fonts.google.com/ -->
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+	<!-- Roboto -->
+	<link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;1,300&display=swap" rel="stylesheet">
+
+	<!-- Great Vibes [demo: don't use!]-->
+	<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Roboto:ital,wght@0,400;1,300&display=swap"
+		rel="stylesheet">
+
+</head>
+
+
+<!-- Our stylesheet. Here because EntryThingy injects its css at end of head -->
+<link rel="stylesheet" type="text/css" href="styles.css">
+
+<body>
+
+
+	<div id="container">
+
+		<!-- Paypal Button demo. Remove -->
+		<!--
+		  <p>--- PayPal Demo - Remove ---</p>
+		  Please select your fee option and click a payment button:<div id='smart-button-container'><span class="radio-group"><input id='minOption' type='radio' name='fee-options' fee='10'><label for='minOption'>$10 Entry Fee</label></span><span class="radio-group"><input id='suggestedOption' type='radio' name='fee-options' fee='10' donation='5' checked><label for='suggestedOption'>$10 Entry Fee + $5 Donation</label></span><span class="radio-group"><input id='maxOption' type='radio' name='fee-options' fee='10' donation='10'><label for='maxOption'>$10 Entry Fee + $10 Donation</label></span><div id='paypal-button-container'></div></div>
+		 <p>----------</p>
+	 -->
+
+		<!-- Endo of Paypal Button demo. Remove -->
+
+		<!-- Entrythingy Code Block -->
+		<script src="https://s3.amazonaws.com/entrythingy/resources/entrythingy.js" type="text/javascript"
+			language="Javascript"></script>
+
+		<!-- Our entrythingy JS overrides-->
+		<script src="entrythingy-override.js"></script>
+
+		<!-- PayPal's Smart Button script, configured for Kenoli Sandbox -->
+		<!-- <script
+			src="https://www.paypal.com/sdk/js?client-id=AbWY0VeXz7eMM9PaoZVTSjAy4qsmThgAwE34k3NXTgz_PeLBpyYQ1T17MYFOA_28R-pt7jToagozDfgk&disable-funding=credit,card&currency=USD"
+			data-sdk-integration-source="button-factory">
+	  </script>
+		<script>alert('Configured for Kenoli Sandbox');</script> -->
+
+		<!-- PayPal's Smart Button script, configured for AOPR Live Account -->
+		<script
+			src="https://www.paypal.com/sdk/js?client-id=AT17qfEQuo4XQ8Bg1grsJAbmHoJ27aQyE1iRtbPQB-ZiYrkN5O5pCru6T3WchLZwdxZ0TBwOwEYqctGN&disable-funding=credit,card&currency=USD"
+			data-sdk-integration-source="button-factory">
+		</script>
+
+		<!-- Our supplemental JS-->
+		<script src="script.js"></script>
+		<script src="paypal-script.js"></script>
+
+		<iframe id="et_uploadtarget" name="et_uploadtarget" src="" style="width:0px;height:0px;border:0">&nbsp;</iframe>
+		<div id='et_apparea' style='text-align:left;'>
+			<p><img src=https://s3.amazonaws.com/entrythingy/images/loading.gif><a href=https://www.entrythingy.com
+					title="celebrating" target="_blank">Loading EntryThingy. Receive, manage and jury your calls for
+					entries...</a></p>
+		</div>
+
+		<script type="text/javascript" language="Javascript">
+			var sitecode = "YW9wcmthbGVpZG8uc2l0ZQ==";
+			w_['startwith'] = "login";
+			// w_['startwith']="list";
+			w_['entrantskipmain'] = "y";
+			entryThingy();
+			OurCode.start();
+		</script>
+		<!-- End of Entrythingy code block -->
+
+	</div>
+
+</body>
+
+</html>

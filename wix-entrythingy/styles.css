@@ -1,0 +1,51 @@
+#container {
+  font-family: "Roboto", Arial, Sans-Serif;
+  padding: 0 20px;
+}
+
+img#logo {
+  display: block;
+  max-width:100%;
+  margin:20px auto;
+  margin-left:auto;margin-right:auto
+}
+
+/* Main Navigation link overrides */
+.et_mainnavlink { font-size: 20px !important; }
+
+/* Artist's thumbnail images */
+p.ptp img {
+    margin-right: 4px;
+}
+
+/* Artist image blocks on jury page */
+p#juryimages div { padding-right: 10px; }
+
+#payment-header {
+  display: block;
+  margin: 1rem 0 0 0;
+  font-size: 115%;
+  font-weight: bold;
+  color: red;
+}
+
+/* Paypal button section */
+#smart-button-container {
+  max-width: 30rem;
+} 
+#smart-button-container .radio-group {
+  display: block; margin: 4px 0;
+}
+#custom-donation-input {
+  width: 4rem;
+  text-align: right;
+}
+#paid-message{
+  background: #ffc439;
+  padding: 1px 4px;
+  margin-top: 1rem;
+}
+#paypal-button-container {
+  margin-top: 1rem;
+  max-width: 5rem;
+}
