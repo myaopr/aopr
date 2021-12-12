@@ -29,15 +29,23 @@ p#juryimages div { padding-right: 10px; }
   color: red;
 }
 
+/* Remove step spinner on number input boxes */
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
+
 /* Paypal button section */
 #smart-button-container {
-  max-width: 30rem;
+  min-width: 20rem;
 } 
 #smart-button-container .radio-group {
-  display: block; margin: 4px 0;
+  display: block; 
+  margin: 4px 0;
 }
 #custom-donation-input {
-  width: 4rem;
+  width: 3rem;
   text-align: right;
 }
 #paid-message{

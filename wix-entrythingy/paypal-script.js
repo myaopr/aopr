@@ -76,57 +76,64 @@ var OurCode = OurCode ? OurCode : {};
 			var customDonationOptionSpan = document.createElement('span')
 			customDonationOptionSpan.className = 'radio-group';
 
-			// Custom donation amount input
-			var customDonationOptionInput = document.createElement('input');
-			customDonationOptionInput.id = 'custom-donation-input';
-			customDonationOptionInput.setAttribute('type', 'number');
-			customDonationOptionInput.value = '20'; // default initial value is 20
-			customDonationOptionInput.hidden = true; // start hidden; revealed when radio button clicked.
+			// Custom donation amount input, wrapped in span
+			var customDonationInputSpan = document.createElement('span');
+			customDonationInputSpan.innerHTML='&nbsp;$';
+
+			var customDonationInput = document.createElement('input');
+			customDonationInput.id = 'custom-donation-input';
+			customDonationInput.setAttribute('type', 'number');
+			customDonationInput.value = '20'; // default initial value is 20
+
+			customDonationInputSpan.appendChild(customDonationInput);
+			customDonationInputSpan.hidden = true; // start hidden; revealed when radio button clicked.
 		
 
 			// Custom Donation radio button
-			var customDonationOption = document.createElement('input')
-			customDonationOption.id ='custom-donation';
-			customDonationOption.setAttribute('type', 'radio');
-			customDonationOption.setAttribute('name', 'fee-options'); // the radio button group
-			customDonationOption.setAttribute('donation', customDonationOptionInput.value);
+			var customDonationRadio = document.createElement('input')
+			customDonationRadio.id ='custom-donation';
+			customDonationRadio.setAttribute('type', 'radio');
+			customDonationRadio.setAttribute('name', 'fee-options'); // the radio button group
+			customDonationRadio.setAttribute('donation', customDonationInput.value);
 
 			// Custom Donation radio button label
-			var customDonationOptionLabel = document.createElement('label')
-			customDonationOptionLabel.setAttribute('for', 'custom-donation');
+			var customDonationInputLabel = document.createElement('label')
+			customDonationInputLabel.setAttribute('for', 'custom-donation');
 			var feeText = (entryFee ? '$' + entryFee + ' Entry fee + ' : '');
-			customDonationOptionLabel.innerHTML = feeText + (entryFee ? ' donation' : 'Donation') + ' of your choice&nbsp;';
+			customDonationInputLabel.innerHTML = feeText + (entryFee ? ' donation' : 'Donation') + ' of your choice';
 
 
 			// Set Custom Donation radio button "donation" attribute when amount changes
-			customDonationOptionInput.addEventListener('change', function () {
-				var value = parseFloat(customDonationOptionInput.value) || 0;
+			customDonationInput.addEventListener('change', function () {
+				var value = parseFloat(customDonationInput.value) || 0;
 				if (value < 0) {
-					customDonationOptionInput.value = value = 0;
+					customDonationInput.value = value = 0;
 				}
-				customDonationOption.setAttribute('donation', value);
+				customDonationRadio.setAttribute('donation', value);
 			});
 
 			// Add show-on-click to the custom option
-			function showDonationInput() { customDonationOptionInput.hidden = false; }
-			customDonationOption.onclick = showDonationInput
-			customDonationOptionLabel.onclick = showDonationInput
+			function showDonationInputSpan() { customDonationInputSpan.hidden = false; }
+
+			customDonationRadio.onclick = showDonationInputSpan
+			customDonationInputLabel.onclick = showDonationInputSpan
 
 			// Add hide-on-click to the other options
-			function hideDonationInput() { customDonationOptionInput.hidden = true; }
+			function hideDonationInputSpan() { customDonationInputSpan.hidden = true; }
+
 			for(var i = 0; i < feeOptions.length; i++) {
 				var option = feeOptions[i];
-				option.onclick = hideDonationInput;
+				option.onclick = hideDonationInputSpan;
 				var label = option.nextSibling;
 				if (label.tagName === 'LABEL') {
-					label.onclick = hideDonationInput;
+					label.onclick = hideDonationInputSpan;
 				}
 			}
 
 			// Append new elements to options container in the DOM
-			customDonationOptionSpan.appendChild(customDonationOption);
-			customDonationOptionSpan.appendChild(customDonationOptionLabel);
-			customDonationOptionSpan.appendChild(customDonationOptionInput);
+			customDonationOptionSpan.appendChild(customDonationRadio);
+			customDonationOptionSpan.appendChild(customDonationInputLabel);
+			customDonationOptionSpan.appendChild(customDonationInputSpan);
 
 			var container = document.getElementById('smart-button-container');
 			var payPalButtonContainer = document.getElementById('paypal-button-container');
