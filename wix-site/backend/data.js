@@ -69,7 +69,8 @@ export function Artists_beforeUpdate(artist, context) {
     // console.warn('Artists_beforeUpdate begins:', artist, context);
 
     const currentArtist = context.currentItem;
-    if (currentArtist.blocked && !isAdmin(context)) {
+    const admin = isAdmin(context)
+    if (currentArtist.blocked && !admin) {
         return Promise.reject('Artist blocked; contact info@artsofpointrichmond.com.');
     }
     const err = cleanArtistData(artist, context);
@@ -79,9 +80,11 @@ export function Artists_beforeUpdate(artist, context) {
     if (!artist.name) {
         return Promise.reject('Artist name cannot be empty');
     } else {
-        // Cannot delete from images through artist update
         // When updating, ensure that we keep the current images that are not in the updating artist images.
-        artist.images = updateImages(currentArtist.images, artist.images);
+        // Cannot delete from images through artist update UNLESS you are an ADMIN
+        if (!admin) {
+            artist.images = updateImages(currentArtist.images, artist.images);
+        }
 
         // TODO: Run this to force a change in the ownerId
         // Make any trivial change to the corresponding artist to invoke it
@@ -109,6 +112,7 @@ function cleanArtistData(artist, context) {
     artist.images = artist.images || [];
     artist.name = artist.name ? artist.name.trim() : '';
     artist.title = artist.title ? artist.title.trim() : '';
+    artist.website = artist.website ? artist.website.trim() : null;
     // No validations at this time.
     return null;
 }

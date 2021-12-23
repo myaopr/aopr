@@ -11,11 +11,27 @@ let debounceTimer;
 let lastSearchValue;
 /** @type {ArtistMemberInfo} */
 let memberInfo;
+/** @type {$w.Pagination} */
+let paginationBar;
+/** @type {$w.Repeater} */
+let repeater;
+/** @type {$w.Box} */
+let searchBox;
 
 $w.onReady(function () {
     $w("#pageTitle").scrollTo();
+    paginationBar = $w("#paginationBar");
+    repeater = $w("#artistGalleryRepeater");
+    searchBox = $w("#searchBox");
     showHideItemIcons();
-    $w('#dataset').setFilter(artistGalleryDefaultFilter);
+
+    repeater.collapse(); // don't show until first official fetch
+
+    getArtistMemberInfo().then(mi => {
+        memberInfo = mi;
+        memberInfo.canAdd ? $w('#addButton').expand() : $w('#addButton').collapse();
+        $w('#dataset').setFilter(memberInfo.defaultFilter || artistGalleryDefaultFilter).then(afterFetch);
+    });
 });
 
 export function addButton_click(event) {
@@ -45,24 +61,37 @@ export function addButton_click(event) {
     }
 }
 
+/** Adjust display after fetching data, usually after Dataset.setFilter()
+ * @returns {number} Count of retrieved page of artist records
+ */
+function afterFetch() {
+    const itemCount = $w("#dataset").getTotalCount();
+    // console.log(`After filter the count is ${itemCount}`);
+    if (itemCount) {
+        $w('#noItemsText').collapse();
+        repeater.expand().then(_ => repeater.show('fade'));
+        const pageCount = $w("#dataset").getTotalPageCount();
+        if (pageCount > 1) {
+            paginationBar.expand().then(_ => paginationBar.show('fade'));
+            searchBox.expand().then(_ => searchBox.show('fade')); // show search when page count > 1
+        } else {
+            paginationBar.hide('fade').then(_ => paginationBar.collapse());
+        }
+    } else {
+        $w('#noItemsText').expand();
+        paginationBar.hide('fade').then(_ => paginationBar.collapse());
+        repeater.hide('fade').then(_ => repeater.collapse());
+    }
+    return itemCount;
+}
+
 export function clearSearchButton_click(event) {
     $w('#searchInput').value = '';
-    filter('');
+    search('');
 }
 
 export function dataset_ready() {
-    getArtistMemberInfo().then(mi => {
-        memberInfo = mi;
-        if (memberInfo.defaultFilter !== artistGalleryDefaultFilter) {
-            // reset the filter to the one attached to the Member
-            $w('#dataset').setFilter(memberInfo.defaultFilter);
-            // Must pretend to trigger search to get updated filter to take effect. Don't know why
-            lastSearchValue = undefined; // ensures no match
-            searchInput_keyPress(null); 
-        } 
-        memberInfo.canAdd ? $w('#addButton').expand() : $w('#addButton').collapse();
-        filter('');
-    });
+
 }
 
 export function searchInput_keyPress(event) {
@@ -72,12 +101,17 @@ export function searchInput_keyPress(event) {
     }
 
     debounceTimer = setTimeout(() => {
-    	filter($w("#searchInput").value);
+    	search($w("#searchInput").value);
     }, 200);
 }
 
-function filter(searchValue) {
+/** Reset the filter based on the searchValue. Do nothing if searchValue unchanged.
+ * @param {string} searchValue
+ * @returns {Promise<number>} The number of artist records returned after applying the filter
+ */
+function search(searchValue) {
     if (lastSearchValue !== searchValue) {
+        lastSearchValue = searchValue;
         let dataFilter = memberInfo.defaultFilter;
         if (searchValue) {
             $w("#clearSearchButton").show();
@@ -85,36 +119,12 @@ function filter(searchValue) {
         } else {
             $w("#clearSearchButton").hide();
         }
-        $w("#dataset").setFilter(dataFilter)
-			.then(_ => {
-				const itemCount = $w("#dataset").getTotalCount();
-                // console.log(`After filter the count is ${itemCount}`);
-                if (itemCount) {
-                    $w('#noItemsText').collapse();
-                    $w('#artistGalleryRepeater').expand();
-                    const pageCount = $w("#dataset").getTotalPageCount();
-                    if (pageCount > 1) {
-                        $w('#paginationBar').expand();
-                        $w('#searchBox').expand(); // show search if there is ever a page count > 1
-                    } else {
-                        $w('#paginationBar').collapse();
-                    }
-                } else {
-                    noArtists();
-                }
-			});
-        lastSearchValue = searchValue;
+        return $w("#dataset").setFilter(dataFilter).then(afterFetch);
     }
 }
 
-function noArtists() {
-    $w('#paginationBar').collapse(); 
-    $w('#noItemsText').expand();
-    $w('#artistGalleryRepeater').collapse();
-}
-
 function showHideItemIcons() {
-    $w('#artistGalleryRepeater').onItemReady(($wInRepeater, itemData) => {
+    repeater.onItemReady(($wInRepeater, itemData) => {
     const {blocked, hidden} = itemData;
     blocked ? $wInRepeater('#blocked').expand() : $wInRepeater('#blocked').collapse() 
     hidden ? $wInRepeater('#hidden').expand() : $wInRepeater('#hidden').collapse() 

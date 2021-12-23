@@ -1,0 +1,85 @@
+/*********
+ artist-gallery.jsw file
+ *********
+
+ Backend .jsw files contain functions that run on the server side but can be called from page code and frontend files.
+ Use backend functions to keep code private and hidden from a user's browser. More info:
+
+ https://support.wix.com/en/article/velo-web-modules-calling-backend-code-from-the-frontend
+
+**********/
+
+import wix_data from 'wix-data';
+import { currentMember } from 'wix-members-backend';
+
+import { artistGalleryCollectionName, siteOwnerId } from 'public/constants';
+import { updateImages } from 'public/images';
+
+/**
+ * @typedef {import('public/type-defs.js').Artist} Artist
+ * @typedef {import('public/type-defs.js').ImageInfo} ImageInfo
+ * @typedef {import('public/type-defs.js').NextPrev} NextPrev
+ */
+
+/** Update the artist's images array with new and changed images from client.
+ * @param {string} id - of the artistGallery record to update
+ * @param {ImageInfo[]} newImages - images from the client.
+ * @returns {Promise<Artist>} The Artist record on the server, updated with images from client
+ */
+export function updateArtistImagesOnServer(id, newImages) {
+    /** @type {Promise<Artist>} */
+    return wix_data.get(artistGalleryCollectionName, id).then(res => {
+        /** @type {Artist} */
+        const artist = res;
+        if (!Array.isArray(newImages)) {
+            return Promise.reject(`updateArtistImagesOnServer() error: "newImages" is not an array`);
+        } else if (artist) {
+            const currentImages = artist.images || [];
+            artist.images = updateImages(currentImages, newImages);
+            return wix_data.update(artistGalleryCollectionName, artist)
+        } else {
+            return Promise.reject(`updateArtistImagesOnServer() error: Did not find the artist gallery record with id=${id}`);
+        }
+    });
+}
+
+/** Get the next and previous artist record relative to the reference artist with the given id
+ * Consider only the artists that the signed-in user may see.
+ * @param {string} id - of the reference artist.
+ * @returns {Promise<NextPrev>} The Artist records before and after the reference artist (or null if no before/after)
+ */
+export function getNextPreviousArtists(id) {
+    return currentMember.getMember().catch(err => {
+            // fails with "permission denied" when there is no logged-in user.
+            // OK for this method; return a null member and continue.
+            // console.error('getNextPreviousArtists->getMember failed', err);
+            return Promise.resolve(null);
+        }).then(member => {
+        const userId = member ? member._id : '';
+        let query = wix_data.query(artistGalleryCollectionName);
+        if (userId !== siteOwnerId) {
+            // Not hidden and not blocked OR the record is for the user
+            query = query.ne('hidden', true).ne('blocked', true).or(wix_data.query(artistGalleryCollectionName).eq('_owner', userId));
+        }
+        // 500 should be enough for AOPR. Absolute WIX query max is 1000; will have to page-query if we hit that.
+        query = query.limit(500).ascending("name");
+        /** @type {NextPrev} */
+        let result = {next: null, previous: null};
+        return query.find({suppressAuth: true}).then(qr => {
+            /** @type {Artist[]} */
+            const artists = qr.items;
+            const ix = artists.findIndex(a => a._id === id);
+            if (ix > -1) {
+                result = {
+                    next: artists[ix + 1] || null,
+                    previous: artists[ix - 1] || null
+                };
+            }
+            return result;
+        }).catch(err => {
+            const emsg = "Failed to query next/previous artists for artist with id=" + id;
+            console.error(emsg, err);
+            return Promise.resolve(result); // return empty results rather than crash
+        })
+    })
+}
