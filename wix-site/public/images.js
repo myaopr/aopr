@@ -41,7 +41,7 @@ export function createAndSaveNewImage(artist, fileInfo, uploadedFile, title) {
  * @param {string} [title] - value for title and alt
  * @returns {ImageInfo}
 */
-function createImageInfoFromUrl(uri, title) {
+export function createImageInfoFromUrl(uri, title) {
 	const parsed = parseWixImageUrl(uri);
 	if (parsed) {
 		return {

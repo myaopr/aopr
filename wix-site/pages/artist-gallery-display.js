@@ -1,9 +1,6 @@
-// HIDING NAVIGATION STRIP because cannot (yet) find a way to show only items that satisfy the filter.
-// If enabled, it shows hidden and blocked records.
-
 import { formFactor } from 'wix-window';
 import { MosaicArtistPortfolioDisplayType } from 'public/constants';
-import { getArtistMemberInfo, stopSpinner } from 'public/aopr-utils';
+import { getArtistMemberInfo } from 'public/aopr-utils';
 import { getNextPreviousArtists } from 'backend/artist-gallery'
 
 /**
@@ -30,7 +27,6 @@ $w.onReady(function () {
 });
 
 function datasetReady() {
-	setTimeout(stopSpinner); // in case it stalled after Edit page save.
 	setNextPreviousButtons();	
 	showCurrentItem();
 	showEditButton();
@@ -58,6 +54,7 @@ function setNextPreviousButtons() {
 }
 
 function showCurrentItem() {
+	/** @type {Artist} */
 	const item = $w("#dataset").getCurrentItem();
 
     if (item.blocked) { $w("#blockedBox").expand(); }
@@ -94,12 +91,12 @@ function showCurrentItem() {
 			$w("#backToListStrip2").collapse(); // not defined in mobile
 		}
 	} else {
-		if (item.portfolioDisplayType === MosaicArtistPortfolioDisplayType) {
-			$w("#portfolio1").collapse();
-			$w("#portfolio2").expand();
+		if (item.galleryDisplayType === MosaicArtistPortfolioDisplayType) {
+			$w("#thumbnailsGallery").collapse();
+			$w("#mosaicGallery").expand();
 		} else {
-			$w("#portfolio1").expand();
-			$w("#portfolio2").collapse();
+			$w("#thumbnailsGallery").expand();
+			$w("#mosaicGallery").collapse();
 		}
 		$w("#portfolioStrip").expand();
 		if (!isMobile) {

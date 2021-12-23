@@ -1,6 +1,6 @@
 import wixWindow from 'wix-window';
 
-/** Spinner lightbox runs until (a) another lightbox opens [see LightboxCloser], (b) host page navigates away, (c) it times-out  */
+/** Spinner lightbox runs until (a) another lightbox opens [see LightboxCloser], (b) host page navigates away, (c) it times-out and closes itself */
 $w.onReady(function () {
 	// console.warn('Spinner lightbox opened');
 	/** @type  {{message?: string, safetyTimeout?: number}} */

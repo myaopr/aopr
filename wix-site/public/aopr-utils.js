@@ -15,6 +15,8 @@ import { artistGalleryCollectionName, siteOwnerId } from 'public/constants';
 /** Default WIX dataset filter for non-logged-in visitors of the artist gallery */
 export const artistGalleryDefaultFilter = wixData.filter().ne('hidden', true).ne('blocked', true);
 
+let isShowingSpinner = false;
+
 /** Constrain text to maxLength, appending elipsis unless inMiddle is true in which case put elipsis in the middle
  * @param {string} text - to constrain
  * @param {number} maxLength - of allowed result
@@ -93,7 +95,6 @@ export function getMemberInfo() {
     }
 }
 
-
 /** Get MemberInfo about the current signed in member, extended with info needed in Artist Gallery 
  * Sets the artist gallery defaultFilter based on member permissions
  * @returns {Promise<ArtistMemberInfo>}
@@ -166,11 +167,13 @@ export function goBack(targetElementId, defaultUrl) {
 }
 
 /** Show the spinner lightbox
+ * Spinner lightbox keeps showing until (a) another lightbox opens [see LightboxCloser], (b) host page navigates away, (c) it times-out and closes itself
  * @param {SpinnerLightboxOptions} [options] 
  * @returns {Promise<object>} - Resolved when lightbox closed; the data object is irrelevant.
  */
 export function showSpinner(options) {
-    return openLightbox('Spinner', options);
+    isShowingSpinner = true;
+    return openLightbox('Spinner', options).finally(_ => isShowingSpinner = false);
 }
 
 /** Close  the spinner lightbox 
@@ -178,7 +181,10 @@ export function showSpinner(options) {
  * @returns {Promise<object>} - Resolved when lightbox closed; the data object is irrelevant.
 */
 export function stopSpinner(options) {
-    // Trick: WIX allows only one lightbox at a time
-    // "LightboxCloser" is a do nothing lightbox that closes itself as soon as possible
-    return openLightbox('LightboxCloser', options);
+    if (isShowingSpinner) {
+        isShowingSpinner = false; // no point in calling it again.
+        // Trick: WIX allows only one lightbox at a time
+        // "LightboxCloser" is a do nothing lightbox that closes itself as soon as possible
+        return openLightbox('LightboxCloser', options);
+    }
 }

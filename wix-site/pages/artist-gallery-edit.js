@@ -4,7 +4,7 @@ import { artistsDisplayPageLinkField, defaultArtistImageUrl, maxImageUploads,
 	MosaicArtistPortfolioDisplayType, ThumbnailsDisplayType } from 'public/constants';
 import { elipsisText, showSpinner, stopSpinner} from 'public/aopr-utils';
 import { updateArtistImagesOnServer } from 'backend/artist-gallery';
-import { createAndSaveNewImage, getSlug, parseWixImageUrl } from 'public/images';
+import { createAndSaveNewImage, createImageInfoFromUrl, getSlug, parseWixImageUrl } from 'public/images';
 
  /**
   * @typedef {import('public/type-defs.js').Artist} Artist
@@ -96,7 +96,6 @@ export function clearArtistPhotoButton_click(event) {
 }
 
 function datasetReady() {
-	stopSpinner();
 	const artist = getArtist();
 	const {gallery: portfolio, images} = artist;
 
@@ -151,15 +150,20 @@ function getArtist() {
 
 export function saveButton_click(event) {
 	showSpinner({message: 'Saving ...'});
+	/** @type {$w.Button} */
+	const saveButton = event.target;
+	saveButton.disable();
 	dataset.save().then(updated => {
 		// setErrorMessage('Save succeeded').then(() => {
-		to(updated[artistsDisplayPageLinkField]);
+			setTimeout(_ => to(updated[artistsDisplayPageLinkField]), 500); // give spinner the minimum time before closing
 		// });
 	}).catch(err => {
+		saveButton.enable(); // in hopes it might work next time.
+		stopSpinner();
 		const emsg = 'Save failed';
 		setErrorMessage(emsg);
 		console.error(emsg, err);
-	}).finally(_ => stopSpinner());
+	});
 }
 
 function setErrorMessage(message) {
@@ -659,8 +663,9 @@ function uploadImage(uploadButton, preloader, setMessage, title) {
 			})
 			.then(uploadedFiles => {
 				const artist = getArtist();
-				return createAndSaveNewImage(artist, fileInfo, uploadedFiles[0], title).then(_ => {
+				return createAndSaveNewImage(artist, fileInfo, uploadedFiles[0], title).then(result => {
 					maxUploadsGuard(artist.images.length);
+					return result;
 				});
 			})
 			.catch(err => {

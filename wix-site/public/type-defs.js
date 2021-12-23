@@ -5,12 +5,17 @@
  * @property {string} _owner
  * @property {string} artistPhoto - url of the artist's photo
  * @property {boolean} blocked - artist is blocked from display and edit
+ * @property {string} email - where artist wants to be emailed by the public. Not necessarily the member email
+ * @property {string} instagram - artist's personal instagram
  * @property {boolean} hidden - hide this artist record from the public gallery
  * @property {ImageInfo[]} images - all images uploaded by the artist ever. They're all in the Media Manager
- * @property {ImageInfo[]} gallery - all images in the artist's portofolio
+ * @property {ImageInfo[]} gallery - all images in the artist's portfolio
  * @property {string} galleryDisplayType - how to present the portfolio on the display page
+ * @property {string} media - ex: oil, ceramics, photography
  * @property {string} name - full name
+ * @property {string} statement
  * @property {string} title - ex: Photographer
+ * @property {string} website - artist's personal website
  */
 
  /** @typedef {MemberInfo & ArtistMemberExtension} ArtistMemberInfo
