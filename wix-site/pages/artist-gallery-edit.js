@@ -1,6 +1,6 @@
 import { to } from 'wix-location';
 import { formFactor } from 'wix-window';
-import { artistsDisplayPageLinkField, defaultArtistImageUrl, maxImageUploads, 
+import { artistsDisplayPageLinkField, defaultArtistImageUrl, maxImageUploads, maxPortfolioImages,
 	MosaicArtistPortfolioDisplayType, ThumbnailsDisplayType } from 'public/constants';
 import { elipsisText, showSpinner, stopSpinner} from 'public/aopr-utils';
 import { updateArtistImagesOnServer } from 'backend/artist-gallery';
@@ -25,15 +25,17 @@ import { createAndSaveNewImage, createImageInfoFromUrl, getSlug, parseWixImageUr
    * @property {string} [name] - for display in images table only.
    */
 
-let blockImageUpload = false;
-const blockImageUploadMsg = 'You cannot upload more images because you used up your quota. Contact support@artsofpointrichmond.com';
+/** No more image uploads allowed if true because this artist has reached the max allowed. See maxUploadsGuard(). */
+let blockUpload = false;
+const blockUploadMsg = 'You cannot upload more images because you used up your quota. Contact support@artsofpointrichmond.com';
 
 /** @type {wix_dataset.Dataset} */
 let dataset;
 
 let errMsgTimeoutId;
 
-const maxPortfolioImages = 10; // TODO: move to constants?
+/** @type {$w.Box} */
+let galleryBox;
 
 /** @type {$w.Repeater} */
 let portfolioRepeater;
@@ -41,6 +43,8 @@ let portfolioRepeater;
 $w.onReady(function () {
 	dataset = $w("#dataset");
 	dataset.onReady(datasetReady)
+	galleryBox = $w("#galleryBox");
+	portfolioRepeater = $w("#portfolioRepeater");
 	$w("#saveStrip").scrollTo();
 
 	if (formFactor === 'Mobile') {
@@ -105,23 +109,23 @@ function datasetReady() {
 	}
 
 	addMissingImages(artist);
-	blockAddingToPortfolio(portfolio);
+	checkPortfolioCount(portfolio);
 	maxUploadsGuard(images.length);
 
 	displayHideRecordCheckboxes();
 	dataset.onItemValuesChanged(displayHideRecordCheckboxes);
 
-    initializeArtistImageTable();
+	initializeArtistImageTable();
 	initializePortfolioRepeater();
 	initializePortfolioImageTable();
 	setPortfolioDisplay(artist.galleryDisplayType);
 }
 
 /** Switch between the two checkboxes based on the current state of "Hidden" checkbox 
- * that measn "this artist record is hidden from the gallery".
+ * that means "this artist record is hidden from the gallery".
  * Because WIX prevents styling HTML, we switch between two overlapping checkboxes, 
  * one for when the record is hidden (red) and 
- * one for when the record is public (blue, not hiddent)
+ * one for when the record is public (blue, not hidden)
  */
 function displayHideRecordCheckboxes() {
 	if ($w("#hideCheckboxHidden").checked) {
@@ -180,7 +184,7 @@ function setErrorMessage(message) {
 
 // #region image tables
 export function addToPortfolioFromImagesButton_click(event) {
-	$w("#porfolioImageTableBox").collapsed 
+	$w("#portfolioImageTableBox").collapsed 
 		? showPortfolioImageTable()
 		// .then(_ => {
 		// 	$w("#addToPortfolioFromImagesButton").scrollTo()
@@ -250,7 +254,7 @@ function hideArtistImageTable() {
 }
 
 function hidePortfolioImageTable() {
-	const tableBox = $w("#porfolioImageTableBox");
+	const tableBox = $w("#portfolioImageTableBox");
 	if (!tableBox.collapsed) {
 		return $w("#innerPortfolioImageTableBox").hide('roll', { direction: 'top'})
 			.then(_ => 	tableBox.collapse()); 
@@ -322,7 +326,7 @@ function showArtistImageTable() {
 }
 
 function showPortfolioImageTable() {
-	const tableBox = $w("#porfolioImageTableBox");
+	const tableBox = $w("#portfolioImageTableBox");
 	if (tableBox.collapsed) {
 		refreshPortfolioImageTable();
 		return tableBox.expand()
@@ -338,8 +342,8 @@ function showPortfolioImageTable() {
  * @param {string} slug - that identifies the image in the images
  */
 export function addImageToPortfolio(slug) {
-	let { artist, portfolio } = moveButtonPramble();
-	if (blockAddingToPortfolio(portfolio)) {
+	let { artist, portfolio } = moveButtonPreamble();
+	if (checkPortfolioCount(portfolio)) {
 		return; 
 	}
 	const images = artist.images;
@@ -349,33 +353,41 @@ export function addImageToPortfolio(slug) {
 		portfolio.unshift(image); // add image to the front of the portfolio.
 		updatePortfolio(portfolio);
 		refreshPortfolioRepeater(portfolio);
-		blockAddingToPortfolio(portfolio); // block if now at the limit
+		checkPortfolioCount(portfolio);
 	}
 }
 
-/** If number of images in portfolio is at limit, block adding more. If not, remove the block.
+/** If the portfolio image count is at the limit (maxPortfolioImages), block adding more.
+ * Also handles visibility of portfolio repeater and gallery box based on the count.
  * @param {ImageInfo[]} portfolio
+ * @returns true if at limit and should block adding more; else false.
  */
-function blockAddingToPortfolio(portfolio) {
+function checkPortfolioCount(portfolio) {
 	let blocked = false;
 	let message = '';
-	if (portfolio.length >= maxPortfolioImages) {
+	const portfolioCount = portfolio.length;
+	if (portfolioCount >= maxPortfolioImages) {
 		blocked = true;
 		message = `The maximum number of images in a portfolio is ${maxPortfolioImages}. Remove some before adding more.`
 		$w('#uploadToPortfolioButton').disable();
 	} else {
 		blocked = false;
-		if (blockImageUpload) {
-			message = blockImageUploadMsg;
+		if (portfolioCount > 0) {
+			message = '';
+			portfolioRepeater.expand();
+			galleryBox.expand().then(_ => galleryBox.show('fade')); // fade in because portfolio repeater items fade in
+		} else {
+			message = 'No images in your portfolio. Why not add some?'
+			portfolioRepeater.collapse();
+		    galleryBox.collapse().then(_ => galleryBox.hide()); // abrupt because portfolio repeater closes abruptly
+		}
+
+		if (blockUpload) {
+			// Already at the maximum allowed number of uploaded images.
+			// Keep the upload button disabled and repeat the more important "quota exceeded" message.
+			message = blockUploadMsg;
 		} else {
 			$w('#uploadToPortfolioButton').enable();
-			if (portfolio.length === 0) {
-				message = 'No images in your portfolio. Why not add some?'
-				$w("#portfolioRepeater").collapse();
-			} else {
-				message = '';
-				$w("#portfolioRepeater").expand();
-			}
 		}
 	}
 	setPortfolioChangeMessage(message);
@@ -393,7 +405,6 @@ export function editButton_click(event) {
 }
 
 function initializePortfolioRepeater() {
-	portfolioRepeater = $w("#portfolioRepeater");
 	portfolioRepeater.onItemReady(($item, /** @type ImageInfoX */ itemData, index) => {
 		$item('#imageContainer').background.src = itemData.src;
 		$item('#filenameText').text = elipsisText(itemData.filename, 40, true);
@@ -404,7 +415,7 @@ function initializePortfolioRepeater() {
 	refreshPortfolioRepeater();
 }
 
-function moveButtonPramble(event) {
+function moveButtonPreamble(event) {
 	const artist = getArtist();
 	const portfolio = artist.gallery;
 	const itemCount = portfolio.length;
@@ -416,7 +427,7 @@ function moveButtonPramble(event) {
 }
 
 export function moveDownButton_click(event) {
-	const { items, itemCount, ix, portfolio } = moveButtonPramble(event);
+	const { items, itemCount, ix, portfolio } = moveButtonPreamble(event);
 	if (ix > -1 && ix < itemCount - 1) {
 		let moved = portfolio[ix];
 		portfolio[ix] = portfolio[ix + 1];
@@ -432,7 +443,7 @@ export function moveDownButton_click(event) {
 }
 
 export function moveUpButton_click(event) {
-	const { items, ix, portfolio } = moveButtonPramble(event);
+	const { items, ix, portfolio } = moveButtonPreamble(event);
 	if (ix > 0) {
 		let moved = portfolio[ix];
 		portfolio[ix] = portfolio[ix - 1];
@@ -493,10 +504,10 @@ function refreshPortfolioRepeater(portfolio) {
 }
 
 export function removeButton_click(event){
-	let { items, ix, portfolio } = moveButtonPramble(event);
+	let { items, ix, portfolio } = moveButtonPreamble(event);
 	portfolio = portfolio.filter((_, i) => i != ix);
 	updatePortfolio(portfolio);
-	blockAddingToPortfolio(portfolio); // will unblock if removing image freed room for more
+	checkPortfolioCount(portfolio); // will unblock if removing image freed room for more
 
 	items = items.filter((_, i) => i != ix);
 	portfolioRepeater.data = items;		
@@ -569,11 +580,11 @@ export function uploadToPortfolioButton_focus(event) {
 */
 function maxUploadsGuard(imageCount) {
 	if (imageCount >= maxImageUploads) {
-		blockImageUpload = true;
+		blockUpload = true;
 		$w("#uploadArtistPhotoButton").disable();
 		$w("#uploadToPortfolioButton").disable();
-		setArtistPhotoChangeMessage(blockImageUploadMsg);
-		setPortfolioChangeMessage(blockImageUploadMsg);
+		setArtistPhotoChangeMessage(blockUploadMsg);
+		setPortfolioChangeMessage(blockUploadMsg);
 	}
 }
 
@@ -632,7 +643,7 @@ export function uploadToPortfolioButton_change(event) {
 			const portfolio = getArtist().gallery;
 			portfolio.unshift(image);
 			dataset.setFieldValues({gallery: portfolio, images});
-			blockAddingToPortfolio(portfolio); // block if at the limit
+			checkPortfolioCount(portfolio); // block future additions if at the limit
 
 			refreshPortfolioRepeater(portfolio);
 
