@@ -62,7 +62,7 @@ export function getNextPreviousArtists(id) {
             query = query.ne('hidden', true).ne('blocked', true).or(wix_data.query(artistGalleryCollectionName).eq('_owner', userId));
         }
         // 500 should be enough for AOPR. Absolute WIX query max is 1000; will have to page-query if we hit that.
-        query = query.limit(500).ascending("name");
+        query = query.limit(500).ascending("nameInCaps");
         /** @type {NextPrev} */
         let result = {next: null, previous: null};
         return query.find({suppressAuth: true}).then(qr => {

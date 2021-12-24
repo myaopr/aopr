@@ -111,6 +111,7 @@ function cleanArtistData(artist, context) {
     artist.hidden = artist.hidden == null ? true : artist.hidden;
     artist.images = artist.images || [];
     artist.name = artist.name ? artist.name.trim() : '';
+    artist['nameInCaps'] = artist.name.toLocaleUpperCase(); // for sorting. Hidden from the type.
     artist.title = artist.title ? artist.title.trim() : '';
     artist.website = artist.website ? artist.website.trim() : null;
     // No validations at this time.
