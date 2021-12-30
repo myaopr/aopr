@@ -15,8 +15,22 @@
 
   // Override load function to initialize paypal button (if needed)
   var orig_et_load = et_load;
+  var orig_displayDashboardItems = displayDashboardItems;
+
   et_load = function() {
     orig_et_load.apply(orig_et_load, arguments);
     OurCode.initPayPalButton();
+    extendDisplayDashboardItems();
   }
+
+	/** Extend the displayDashboardItems() method */
+	function extendDisplayDashboardItems() {
+    if (displayDashboardItems === orig_displayDashboardItems || !orig_displayDashboardItems) {
+      orig_displayDashboardItems = displayDashboardItems;
+      displayDashboardItems = function(args) {
+        orig_displayDashboardItems(args);
+        OurCode.removeRequireAoprDiv();
+      }
+    }
+	}
 }());
