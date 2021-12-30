@@ -49,7 +49,7 @@ $w.onReady(function () {
 
 	if (formFactor === 'Mobile') {
 		$w('#clearArtistPhotoButton').label = 'Clear';
-		$w('#setArtistPhotoFromImagesButton').label = 'Set from WIX photos';
+		$w('#setArtistPhotoFromImagesButton').label = 'Set from your uploads';
 	} else {
 		$w('#uploadArtistPhotoButton').buttonLabel = 'Artist Photo';
 		$w('#uploadToPortfolioButton').buttonLabel = 'Portfolio Image';
