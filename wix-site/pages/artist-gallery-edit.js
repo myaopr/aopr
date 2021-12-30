@@ -115,8 +115,7 @@ function datasetReady() {
 	checkPortfolioCount(portfolio);
 	maxUploadsGuard(images.length);
 
-	displayHideRecordCheckboxes();
-	dataset.onItemValuesChanged(displayHideRecordCheckboxes);
+	displayLocks(artist.hidden);
 
 	initializeArtistImageTable();
 	initializePortfolioRepeater();
@@ -124,19 +123,20 @@ function datasetReady() {
 	setPortfolioDisplay(artist.galleryDisplayType);
 }
 
-/** Switch between the two checkboxes based on the current state of "Hidden" checkbox 
+/** Switch between the two lock buttons based on the hidden flag
  * that means "this artist record is hidden from the gallery".
- * Because WIX prevents styling HTML, we switch between two overlapping checkboxes, 
+ * Because reconfiguring a single button per the `hidden` state is complex, we use two buttons
  * one for when the record is hidden (red) and 
  * one for when the record is public (blue, not hidden)
+ * @param {boolean} hidden - the record should be hidden from the gallery
  */
-function displayHideRecordCheckboxes() {
-	if ($w("#hideCheckboxHidden").checked) {
-		$w("#hideCheckboxHidden").show();
-		$w("#hideCheckboxNotHidden").hide();
+function displayLocks(hidden) {
+	if (hidden) {
+		$w("#lockedButton").show();
+		$w("#unlockedButton").hide();
 	} else {
-		$w("#hideCheckboxHidden").hide();
-		$w("#hideCheckboxNotHidden").show();
+		$w("#lockedButton").hide();
+		$w("#unlockedButton").show();
 	}
 }
 
@@ -153,6 +153,19 @@ function getArtist() {
 		dataset.setFieldValues({images, gallery});
 	}
 	return artist;
+}
+
+/** Clicking one of the lock buttons unlocks (shows) or locks (hides) the record in the gallery
+ * @param {$w.Event} event - button clicked
+ */
+export function lockButton_click(event) {
+	const hidden = event.target.id === 'unlockedButton'; // clicking unlocked button means "lock and hide"
+	const artist = getArtist();
+	if (hidden !== !!artist.hidden) {
+		artist.hidden = hidden;
+		dataset.setFieldValue('hidden', hidden);
+		displayLocks(hidden);
+	}
 }
 
 export function saveButton_click(event) {
