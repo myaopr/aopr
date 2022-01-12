@@ -1,4 +1,4 @@
-// dues.js - same as renew.js
+// renew.js - same as dues.js
 $w.onReady(function () {
 });
 
