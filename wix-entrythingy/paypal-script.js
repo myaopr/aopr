@@ -94,6 +94,7 @@ var OurCode = OurCode ? OurCode : {};
 			customDonationRadio.id ='custom-donation';
 			customDonationRadio.setAttribute('type', 'radio');
 			customDonationRadio.setAttribute('name', 'fee-options'); // the radio button group
+			customDonationRadio.setAttribute('fee', entryFee); // the radio button group
 			customDonationRadio.setAttribute('donation', customDonationInput.value);
 
 			// Custom Donation radio button label
