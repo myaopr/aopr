@@ -20,6 +20,7 @@ let searchBox;
 
 $w.onReady(function () {
     $w("#pageTitle").scrollTo();
+    $w("#dataset").setPageSize(150);
     paginationBar = $w("#paginationBar");
     repeater = $w("#artistGalleryRepeater");
     searchBox = $w("#searchBox");
@@ -70,13 +71,6 @@ function afterFetch() {
     if (itemCount) {
         $w('#noItemsText').collapse();
         repeater.expand().then(_ => repeater.show('fade'));
-        const pageCount = $w("#dataset").getTotalPageCount();
-        if (pageCount > 1) {
-            paginationBar.expand().then(_ => paginationBar.show('fade'));
-            searchBox.expand().then(_ => searchBox.show('fade')); // show search when page count > 1
-        } else {
-            paginationBar.hide('fade').then(_ => paginationBar.collapse());
-        }
     } else {
         $w('#noItemsText').expand();
         paginationBar.hide('fade').then(_ => paginationBar.collapse());

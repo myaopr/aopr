@@ -102,6 +102,17 @@ export function clearArtistPhotoButton_click(event) {
 	refreshArtistImageTable();
 }
 
+function cleanBeforeSave() {
+	// Ensure website has the protocol that most people forget.
+	let website = ($w('#websiteInput').value || '').trim();
+	if (website && !website.includes('://')) {
+		// WIX demands the protocol
+		website = "http://" + website;
+		$w('#websiteInput').value = website;
+		dataset.setFieldValue('website', website);
+	}
+}
+
 function datasetReady() {
 	const artist = getArtist();
 	const {gallery: portfolio, images} = artist;
@@ -173,6 +184,7 @@ export function saveButton_click(event) {
 	/** @type {$w.Button} */
 	const saveButton = event.target;
 	saveButton.disable();
+	cleanBeforeSave();
 	dataset.save().then(updated => {
 		// setErrorMessage('Save succeeded').then(() => {
 			setTimeout(_ => to(updated[artistsDisplayPageLinkField]), 500); // give spinner the minimum time before closing
