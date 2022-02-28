@@ -29,7 +29,7 @@ import { createAndSaveNewImage, createImageInfoFromUrl, getSlug, parseWixImageUr
 let blockUpload = false;
 const blockUploadMsg = 'You cannot upload more images because you used up your quota. Contact support@artsofpointrichmond.com';
 
-/** @type {wix_dataset.Dataset} */
+/** @type {$w.dataset} */
 let dataset;
 
 let errMsgTimeoutId;
@@ -103,11 +103,13 @@ export function clearArtistPhotoButton_click(event) {
 }
 
 function cleanBeforeSave() {
-	// Ensure website has the protocol that most people forget.
-	let website = ($w('#websiteInput').value || '').trim();
-	if (website && !website.includes('://')) {
-		// WIX demands the protocol
-		website = "http://" + website;
+	// Ensure website has the protocol that most people forget and no extra spaces.
+	const websiteRaw = $w('#websiteInput').value;
+	let website = (websiteRaw || '').replace(/ /g, '');
+	if (!website.includes('://')) {
+		website = "http://" + website; // WIX demands the protocol
+	}
+	if (website !== websiteRaw) {
 		$w('#websiteInput').value = website;
 		dataset.setFieldValue('website', website);
 	}
