@@ -106,7 +106,7 @@ function cleanBeforeSave() {
 	// Ensure website has the protocol that most people forget and no extra spaces.
 	const websiteRaw = $w('#websiteInput').value;
 	let website = (websiteRaw || '').replace(/ /g, '');
-	if (!website.includes('://')) {
+	if (website && !website.includes('://')) {
 		website = "http://" + website; // WIX demands the protocol
 	}
 	if (website !== websiteRaw) {
