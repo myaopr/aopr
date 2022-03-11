@@ -51,8 +51,8 @@ $w.onReady(function () {
 		$w('#clearArtistPhotoButton').label = 'Clear';
 		$w('#setArtistPhotoFromImagesButton').label = 'Set from your uploads';
 	} else {
-		$w('#uploadArtistPhotoButton').buttonLabel = 'Artist Photo';
-		$w('#uploadToPortfolioButton').buttonLabel = 'Portfolio Image';
+		$w('#uploadArtistPhotoButton').buttonLabel = 'Add Artist Photo';
+		$w('#addToPortfolioFromImagesButton').label = 'Add to portfolio from your uploads';
 	}
 });
 
