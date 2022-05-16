@@ -41,18 +41,24 @@ import { updateImages } from 'public/images';
  * @returns {object | Promise<any>} The artist record or a promise of the artist record
  */
 export function Artists_beforeInsert(artist, context) {
+    if (!artist) {
+        return Promise.reject('Cannot insert a null/undefined artist.');
+    }
     const userId = context.userId;
     const admin = isAdmin(context);
 
     const err = cleanArtistData(artist, context);
+    const artistString = ` Artist: ${JSON.stringify(artist, null, 2)}.`;
     if (err) {
-        return Promise.reject('Artist insert rejected because ' + err);
-    } else if (!userId || artist._owner !== userId ) {
-        return Promise.reject('User not logged in or is not the Artist record _owner');
+        return Promise.reject('Artist insert rejected because ' + err + artistString);
+    } else if (!userId) {
+        return Promise.reject('User not logged in');
+    } else if (artist._owner && artist._owner !== userId ) {
+        return Promise.reject(`User is not the Artist record owner. UserId is ${userId}, _owner is ${artist._owner}.${artistString}`);
     } else if (admin) {
         return artist; // admin can always insert, even if no name (but will have to provide a name to update)
     } else if (!artist.name) { 
-        return Promise.reject('Artist name cannot be empty');
+        return Promise.reject(`Artist name cannot be empty.${artistString}`);
     } else { // only one artist record can be owned by a regular user
         return wixData.query('Artists').eq('_owner', userId).count().then(count => 
             count === 0 ? artist : Promise.reject('User already has an Artists Gallery record')
@@ -67,7 +73,9 @@ export function Artists_beforeInsert(artist, context) {
  */
 export function Artists_beforeUpdate(artist, context) {
     // console.warn('Artists_beforeUpdate begins:', artist, context);
-
+    if (!artist) {
+        return Promise.reject('Cannot update a null/undefined artist.');
+    }
     const currentArtist = context.currentItem;
     const admin = isAdmin(context)
     if (currentArtist.blocked && !admin) {
@@ -76,8 +84,7 @@ export function Artists_beforeUpdate(artist, context) {
     const err = cleanArtistData(artist, context);
     if (err) {
         return Promise.reject('Artist update rejected because ' + err);
-    } else 
-    if (!artist.name) {
+    } else if (!artist.name) {
         return Promise.reject('Artist name cannot be empty');
     } else {
         // When updating, ensure that we keep the current images that are not in the updating artist images.
