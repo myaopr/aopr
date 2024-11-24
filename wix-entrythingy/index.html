@@ -67,6 +67,10 @@
 		</div>
 
 		<script type="text/javascript" language="Javascript">
+			// The sitecode value is the byte64 encode of AOPR's EntryThingy "site code",
+        		// used when we sign-in to EntryThingy.com 
+        		// (e.g. https://www.entrythingy.com/d=aoprkaleido.site#dashboard).
+        		// atob("YW9wcmthbGVpZG8uc2l0ZQ==") decodes to  "aoprkaleido.site", established by Kenoli
 			var sitecode = "YW9wcmthbGVpZG8uc2l0ZQ==";
 			w_['startwith'] = "login";
 			// w_['startwith']="list";
